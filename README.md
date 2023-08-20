@@ -21,4 +21,10 @@ ResourceMonitorX is a lightweight monitoring tool designed to track and analyze 
 2. **Execution:** Run the script and provide the target username as a parameter:
 
 ```shell
-python ResourceMonitorX.py -u username
+python user_memory_isnpector.py  -u username
+
+ 3. **Execution:** Run the script in server.
+
+```shell
+
+memory_insight.ps1
