@@ -16,7 +16,7 @@ if ($userMemoryUsage -is [System.Object[]]) {
 
 #$userMemoryUsagePercent = [math]::Round(($userMemoryUsage / $totalMemory.TotalPhysicalMemory) * 100, 2)
 
-$cpuUsage = Get-WmiObject Win32_Processor | Select-Object LoadPercentage
+#$cpuUsage = Get-WmiObject Win32_Processor | Select-Object LoadPercentage
 
 Write-Host "Total de memória do servidor: $totalMemoryGB GB"
 #Write-Host "Uso de memória do usuário $username: $userMemoryUsagePercent%"
