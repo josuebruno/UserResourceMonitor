@@ -1,0 +1,34 @@
+from flask import Flask, jsonify
+import os
+import json
+
+app = Flask(__name__)
+
+SERVERS_PATH = 'serv'  # Caminho para a pasta de servidores
+
+@app.route('/servers', methods=['GET'])
+def list_servers():
+    servers = []
+    for server_name in os.listdir(SERVERS_PATH):
+        server_path = os.path.join(SERVERS_PATH, server_name)
+        if os.path.isdir(server_path):
+            servers.append(server_name)
+    return jsonify(servers)
+
+@app.route('/servers/<server_name>', methods=['GET'])
+def list_json_files(server_name):
+    server_path = os.path.join(SERVERS_PATH, server_name)
+    if os.path.exists(server_path) and os.path.isdir(server_path):
+        json_files = []
+        for file_name in os.listdir(server_path):
+            if file_name.endswith('.json'):
+                json_path = os.path.join(server_path, file_name)
+                with open(json_path, 'r') as json_file:
+                    json_data = json.load(json_file)
+                    json_files.append(json_data)
+        return jsonify(json_files)
+    else:
+        return jsonify({"error": "Server not found."}), 404
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
