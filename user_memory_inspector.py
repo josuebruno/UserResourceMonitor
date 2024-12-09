@@ -1,7 +1,5 @@
-import os
 import psutil
 import sys
-import time
 import json
 
 def get_logged_users():
@@ -13,64 +11,41 @@ def get_logged_users():
         logged_users.append((username, terminal))
     return logged_users
 
-def get_memory_usage(username):
-    memory_total = 0
-    for process in psutil.process_iter(['pid', 'name', 'memory_info', 'username']):
-        try:
-            process_info = process.info
-            if process_info['username'] and "\\" + username in process_info['username']:
-                memory_total += process_info['memory_info'].vms
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    return memory_total
+def get_user_cpu_percent(username):
+    user_cpu_percent = 0
+    for process in psutil.process_iter(['pid', 'username', 'cpu_percent']):
+        if process.info['username'] == username:
+            try:
+                user_cpu_percent += process.info['cpu_percent']
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+    return user_cpu_percent
 
-def get_process_cpu_usage(username):
-    cpu_total = 0
-    for process in psutil.process_iter(['pid', 'name', 'cpu_percent', 'username']):
-        try:
-            process_info = process.info
-            if process_info['username'] and "\\" + username in process_info['username']:
-                cpu_total += process_info['cpu_percent']
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    return cpu_total
-
-if __name__ == "__main__":
+if _name_ == "_main_":
     if "-u" in sys.argv:
-        username = sys.argv[sys.argv.index("-u") + 1].lower()  # Converter para minúsculas
+        username = sys.argv[sys.argv.index("-u") + 1].lower()
 
         users = get_logged_users()
 
         for user, terminal in users:
-            if user.lower() == username:  # Comparação insensível a maiúsculas/minúsculas
-                initial_memory = get_memory_usage(user)
-                initial_cpu = get_process_cpu_usage(user)
-
-                time.sleep(5)  # Aguarda 5 segundos para coletar mais dados
-
-                final_memory = get_memory_usage(user)
-                final_cpu = get_process_cpu_usage(user)
-
-                memory_usage = final_memory - initial_memory
-                memory_usage_bytes = memory_usage
-                cpu_percent = final_cpu
-
+            if user.lower() == username:
                 total_memory = psutil.virtual_memory().total
-                memory_percent = (memory_usage / total_memory) * 100
+                used_memory = psutil.Process().memory_info().vms
+                cpu_percent = get_user_cpu_percent(user)
 
                 user_info = {
                     "username": user,
-                    "memory_usage_bytes": memory_usage_bytes,
-                    "memory_percent": memory_percent,
+                    "total_memory_bytes": total_memory,
+                    "used_memory_bytes": used_memory,
                     "cpu_percent": cpu_percent
                 }
 
                 json_output = json.dumps(user_info, indent=4)
 
-                json_folder = "json"  # Pasta para os arquivos JSON
-                os.makedirs(json_folder, exist_ok=True)  # Cria a pasta se não existir
+                json_folder = "json"
+                os.makedirs(json_folder, exist_ok=True)
 
-                filename = os.path.join(json_folder, f"user_{user.lower()}.json")  # Caminho completo do arquivo JSON
+                filename = os.path.join(json_folder, f"user_{user.lower()}.json")
                 with open(filename, "w") as json_file:
                     json_file.write(json_output)
 
